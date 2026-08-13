@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  secret-scan:
+    name: Scan des secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ""
+        # gitleaks échoue (exit != 0) si un secret est détecté
+
+  validate-files:
+    name: Validation des fichiers de configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validation JSON (LM Studio)
+        run: |
+          python3 -c "import json; json.load(open('config/mcp.lmstudio.json')); print('mcp.lmstudio.json OK')"
+
+      - name: Validation JSONC (OpenCode)
+        run: |
+          python3 - <<'EOF'
+          import json, re
+          with open('config/opencode.jsonc') as f:
+              content = f.read()
+          # Retire les commentaires JSONC simples (lignes //)
+          content = re.sub(r'^\s*//.*$', '', content, flags=re.MULTILINE)
+          json.loads(content)
+          print('opencode.jsonc OK')
+          EOF
+
+      - name: Validation YAML (docker-compose)
+        run: |
+          pip install --quiet pyyaml
+          python3 -c "import yaml; yaml.safe_load(open('deploy/docker-compose.yml')); print('docker-compose.yml OK')"
+
+      - name: Vérification absence de secrets dans les fichiers suivis
+        run: |
+          if git grep -nE '(PAPI_AUTH_HEADER|api[_-]?key)[[:space:]]*=' -- ':!deploy/.env.example' ':!README.md' ':!SECURITY.md' 2>/dev/null; then
+            echo "Secret potentiel détecté dans un fichier suivi !" >&2
+            exit 1
+          fi
+          echo "Aucun secret détecté"
