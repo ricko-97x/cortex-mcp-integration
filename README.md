@@ -81,6 +81,26 @@ Le script utilise **Docker** s'il est disponible, sinon **Podman**. Le `.env` es
 > 💡 **Matériel** : le script tourne sur des specs minimales (1 vCPU / 1 Go RAM).
 > Voir le tableau [Spécifications serveur recommandées](#spécifications-serveur-recommandées) ci-dessus.
 
+### Désinstallation via le script
+
+La commande `uninstall` supprime **tout** du serveur : conteneurs `cortex-mcp` et
+`cortex-mcp-server` (ancien placeholder), image, package et `.env`.
+
+```bash
+sudo ./install.sh uninstall
+```
+
+Vérification :
+
+```bash
+sudo docker ps -a | grep cortex || echo "Aucun conteneur cortex ✓"
+sudo ls /opt/cortex-mcp 2>&1 || echo "Package supprimé ✓"
+```
+
+> ⚠️ L'opération est **irréversible** : le `.env` (clé API) et le package sont
+> définitivement supprimés. Pour un simple arrêt temporaire, utilisez `stop`
+> (le conteneur et ses données restent en place).
+
 ### Installation manuelle
 
 #### 1. Préparer le dossier
