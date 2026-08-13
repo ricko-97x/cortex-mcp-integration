@@ -11,7 +11,7 @@ Intégration d'un serveur **Model Context Protocol (MCP)** pour **Cortex XSIAM**
 ```
 OpenCode / LM Studio / Claude Desktop
         ↓  HTTP (Streamable HTTP)
-Serveur Ubuntu (srv-crible-test)
+Serveur Ubuntu (srv-test)
         ↓
 Docker Container (cortex-mcp — serveur MCP officiel)
         ↓  API PAPI
