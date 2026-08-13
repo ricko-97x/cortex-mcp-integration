@@ -228,6 +228,32 @@ test_tools() {
 }
 
 # ---------------------------------------------------------------------------
+# Désinstallation complète du serveur (conteneurs, image, package, .env)
+# ---------------------------------------------------------------------------
+uninstall_server() {
+    if [[ "$ENGINE" == "docker" ]]; then
+        docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+        docker rm -f "cortex-mcp-server" >/dev/null 2>&1 || true
+        docker rmi "${IMAGE_NAME}" >/dev/null 2>&1 || true
+    else
+        podman rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+        podman rm -f "cortex-mcp-server" >/dev/null 2>&1 || true
+        podman rmi "${IMAGE_NAME}" >/dev/null 2>&1 || true
+    fi
+    echo "🗑️  Conteneurs (${CONTAINER_NAME}, cortex-mcp-server) et image supprimés."
+    if [[ -d "${INSTALL_DIR}" ]]; then
+        rm -rf "${INSTALL_DIR}"
+        echo "🗑️  Package et .env supprimés (${INSTALL_DIR})."
+    else
+        echo "ℹ️  Aucun dossier ${INSTALL_DIR} à supprimer."
+    fi
+    if [[ -d "/opt/cortex-mcp-server" ]]; then
+        rm -rf "/opt/cortex-mcp-server"
+        echo "🗑️  Dossier résiduel /opt/cortex-mcp-server supprimé."
+    fi
+}
+
+# ---------------------------------------------------------------------------
 # Commandes utilitaires
 # ---------------------------------------------------------------------------
 run_cmd() { # $1 = commande (start|stop|status|logs|update|uninstall)
@@ -239,7 +265,7 @@ run_cmd() { # $1 = commande (start|stop|status|logs|update|uninstall)
             status)    docker ps --filter "name=${CONTAINER_NAME}" --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' ;;
             logs)      docker logs -f "${CONTAINER_NAME}" ;;
             update)    docker exec -it "${CONTAINER_NAME}" python src/cli.py update ;;
-            uninstall) docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true; docker rmi "${IMAGE_NAME}" >/dev/null 2>&1 || true; echo "🗑️  Conteneur et image supprimés (les données du package restent dans ${INSTALL_DIR})." ;;
+            uninstall) uninstall_server ;;
             test)      test_tools ;;
         esac
     else
@@ -249,7 +275,7 @@ run_cmd() { # $1 = commande (start|stop|status|logs|update|uninstall)
             status)    podman ps --filter "name=${CONTAINER_NAME}" --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' ;;
             logs)      podman logs -f "${CONTAINER_NAME}" ;;
             update)    podman exec -it "${CONTAINER_NAME}" python src/cli.py update ;;
-            uninstall) podman rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true; podman rmi "${IMAGE_NAME}" >/dev/null 2>&1 || true; echo "🗑️  Conteneur et image supprimés (les données du package restent dans ${INSTALL_DIR})." ;;
+            uninstall) uninstall_server ;;
             test)      test_tools ;;
         esac
     fi

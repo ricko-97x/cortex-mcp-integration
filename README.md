@@ -74,7 +74,7 @@ Commandes disponibles :
 | `logs` | Suivre les logs en direct |
 | `test` | Handshake MCP + liste des outils disponibles |
 | `update` | Mettre à jour les composants Cortex (`src/cli.py update`) |
-| `uninstall` | Supprimer conteneur et image |
+| `uninstall` | Supprimer conteneurs, image, package et `.env` du serveur |
 
 Le script utilise **Docker** s'il est disponible, sinon **Podman**. Le `.env` est créé depuis `.env.example` et sa validation bloque le démarrage si des placeholders subsistent.
 
@@ -174,6 +174,27 @@ Voir [config/mcp.lmstudio.json](config/mcp.lmstudio.json) — à placer dans `.l
   }
 }
 ```
+
+### Désinstaller le MCP des LLM
+
+Pour retirer le serveur Cortex des clients LLM (sans toucher au serveur distant) :
+
+**OpenCode** — éditer `~/.config/opencode/opencode.jsonc` et supprimer le bloc `"cortex"` sous `"mcp"` :
+
+```jsonc
+{
+  "mcp": {
+    "notion": { ... }   // les autres serveurs restent
+    // "cortex": { ... }  ← à supprimer
+  }
+}
+```
+
+**LM Studio** — éditer `.lmstudio/mcp.json` et supprimer le bloc `"cortex"` sous `"mcpServers"`, puis recharger la fenêtre MCP.
+
+**Claude Desktop** — éditer `claude_desktop_config.json` et supprimer le bloc `"Cortex MCP Server"`.
+
+Une fois le serveur distant coupé, les clients perdent simplement l'outillage Cortex ; il n'y a aucun fichier résiduel à nettoyer côté LLM.
 
 ---
 
