@@ -28,6 +28,28 @@ Cortex XSIAM API
 - Le package **Cortex MCP Server** téléchargé depuis :
   Console XSIAM → **Settings → Configurations → Integrations → Cortex MCP Server**
 
+### Spécifications serveur recommandées
+
+Le serveur MCP est un proxy HTTP asynchrone (FastMCP + httpx) : la charge est
+faible — le travail lourd (requêtes XQL, agrégations, corrélation) est exécuté
+**côté Cortex XSIAM**, pas sur votre machine.
+
+| Ressource | Minimal (test/POC) | Recommandé (production) |
+|-----------|--------------------|--------------------------|
+| CPU       | 1 vCPU             | 2 vCPU                   |
+| RAM       | 1 Go               | 2 Go                     |
+| Disque    | 10 Go              | 20 Go                    |
+| Réseau    | LAN                | LAN à faible latence vers le tenant |
+
+Notes :
+- Le pic de RAM survient au démarrage (chargement des specs OpenAPI + outils) et
+  lors de réponses XQL volumineuses (jusqu'à 1M de lignes en stream).
+- Plusieurs clients MCP en parallèle (OpenCode + LM Studio + Claude Desktop) :
+  privilégier **2 vCPU / 2-4 Go RAM**.
+- `LLM_CONTEXT_SIZE` (32768) concerne le **client** (LM Studio/OpenCode), pas le serveur.
+- La limite de l'API tenant (~10 req/s) peut provoquer des erreurs `429` : cela vient
+  de XSIAM, pas du serveur. Agissez sur le volume de requêtes côté clients.
+
 ---
 
 ## Déploiement
@@ -55,6 +77,9 @@ Commandes disponibles :
 | `uninstall` | Supprimer conteneur et image |
 
 Le script utilise **Docker** s'il est disponible, sinon **Podman**. Le `.env` est créé depuis `.env.example` et sa validation bloque le démarrage si des placeholders subsistent.
+
+> 💡 **Matériel** : le script tourne sur des specs minimales (1 vCPU / 1 Go RAM).
+> Voir le tableau [Spécifications serveur recommandées](#spécifications-serveur-recommandées) ci-dessus.
 
 ### Installation manuelle
 
