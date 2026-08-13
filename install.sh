@@ -136,9 +136,26 @@ build_image() {
 }
 
 # ---------------------------------------------------------------------------
+# Vérification que le port hôte est libre
+# ---------------------------------------------------------------------------
+check_port_free() {
+    if ss -tlnp 2>/dev/null | grep -qE "[:.]${HOST_PORT} "; then
+        echo "❌ Le port ${HOST_PORT} est déjà utilisé par un autre processus/conteneur :" >&2
+        ss -tlnp 2>/dev/null | grep -E "[:.]${HOST_PORT} " | sed 's/^/   /' >&2
+        echo "" >&2
+        echo "   Pour libérer le port :" >&2
+        echo "     docker ps -a --format '{{.Names}} {{.Ports}}' | grep 8080   # trouver le conteneur" >&2
+        echo "     docker rm -f <NOM_CONTENEUR>                                # le supprimer" >&2
+        echo "     ss -tlnp | grep 8080                                        # vérifier que le port est libre" >&2
+        exit 1
+    fi
+}
+
+# ---------------------------------------------------------------------------
 # Démarrage du conteneur
 # ---------------------------------------------------------------------------
 start_container() {
+    check_port_free
     if [[ "$ENGINE" == "docker" ]]; then
         docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
         docker run -d \
