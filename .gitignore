@@ -1,0 +1,24 @@
+# Secrets — ne jamais committer
+.env
+*.key
+*.pem
+*.crt
+
+# Environnements Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Logs & données
+logs/
+data/
+*.log
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
