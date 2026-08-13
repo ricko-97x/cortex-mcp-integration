@@ -32,7 +32,33 @@ Cortex XSIAM API
 
 ## Déploiement
 
-### 1. Préparer le dossier
+### Déploiement automatique (Docker ou Podman) — recommandé
+
+Un script d'installation gère l'ensemble (détection Docker/Podman, copie du package, création du `.env`, build, démarrage, test de santé) :
+
+```bash
+# 1. Télécharger le package Cortex MCP Server depuis la console XSIAM et l'extraire
+# 2. Exécuter le script d'installation
+sudo ./install.sh /chemin/vers/package-cortex-mcp install
+```
+
+Commandes disponibles :
+
+| Commande | Action |
+|----------|--------|
+| `install <pkg>` | Installation complète (copie package, .env, build, démarrage, test) |
+| `start` / `stop` | Démarrer / arrêter le conteneur |
+| `status` | État du conteneur |
+| `logs` | Suivre les logs en direct |
+| `test` | Handshake MCP + liste des outils disponibles |
+| `update` | Mettre à jour les composants Cortex (`src/cli.py update`) |
+| `uninstall` | Supprimer conteneur et image |
+
+Le script utilise **Docker** s'il est disponible, sinon **Podman**. Le `.env` est créé depuis `.env.example` et sa validation bloque le démarrage si des placeholders subsistent.
+
+### Installation manuelle
+
+#### 1. Préparer le dossier
 
 Sur le serveur (`/opt/cortex-mcp` par exemple) :
 
@@ -44,7 +70,7 @@ sudo mkdir -p /opt/cortex-mcp
 ### 2. Configurer les variables d'environnement
 
 ```bash
-cp .env.example .env
+cp deploy/.env.example .env
 nano .env
 ```
 
@@ -59,7 +85,7 @@ Renseigner :
 ### 3. Builder et démarrer
 
 ```bash
-docker compose up -d --build
+docker compose -f deploy/docker-compose.yml up -d --build
 docker logs -f cortex-mcp
 ```
 
